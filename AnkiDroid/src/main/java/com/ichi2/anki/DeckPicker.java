@@ -227,6 +227,8 @@ public class DeckPicker extends NavigationDrawerActivity implements
 
     private String mExportFileName;
 
+    private BroadcastReceiver killBroadcastReceiver = null;
+
     @Nullable private CollectionTask<?, ?, ?, ?> mEmptyCardTask = null;
 
     @VisibleForTesting
@@ -465,6 +467,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
         mFragmented = mStudyoptionsFrame != null && mStudyoptionsFrame.getVisibility() == View.VISIBLE;
 
         registerExternalStorageListener();
+        registerKillBroadcastReceiver();
 
         // create inherited navigation drawer layout here so that it can be used by parent class
         initNavigationDrawer(mainView);
@@ -1002,6 +1005,19 @@ public class DeckPicker extends NavigationDrawerActivity implements
         // The deck count will be computed on resume. No need to compute it now
         TaskManager.cancelAllTasks(CollectionTask.LoadDeckCounts.class);
         super.onPause();
+
+         //Tasker related intent
+         Intent intent = new Intent("TaskerSendData");
+         for(AbstractDeckTreeNode node:mDueTree){
+             ArrayList<Integer> progress = new ArrayList<Integer>();
+ 
+             progress.add(node.getNewCount());
+             progress.add(node.getLrnCount());
+             progress.add(node.getRevCount());
+ 
+             intent.putExtra(Long.toString(node.getDid()), progress);
+         }
+         sendBroadcast(intent);
     }
 
     @Override
@@ -1021,6 +1037,9 @@ public class DeckPicker extends NavigationDrawerActivity implements
         super.onDestroy();
         if (mUnmountReceiver != null) {
             unregisterReceiver(mUnmountReceiver);
+        }
+        if (killBroadcastReceiver != null) {
+            unregisterReceiver(killBroadcastReceiver);
         }
         if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
@@ -2237,6 +2256,22 @@ public class DeckPicker extends NavigationDrawerActivity implements
         }
     }
 
+    private void registerKillBroadcastReceiver(){
+        if(killBroadcastReceiver==null){
+            killBroadcastReceiver = new BroadcastReceiver() {
+
+                @Override
+                public void onReceive(Context arg0, Intent intent) {
+                    String action = intent.getAction();
+                    if (action.equals("finish_activity")) {
+                        moveTaskToBack (true);
+                        // DO WHATEVER YOU WANT.
+                    }
+                }
+            };
+            registerReceiver(killBroadcastReceiver, new IntentFilter("finish_activity"));
+        }
+    }
 
     public void addSharedDeck() {
         openUrl(Uri.parse(getResources().getString(R.string.shared_decks_url)));
