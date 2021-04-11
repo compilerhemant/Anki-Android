@@ -3016,12 +3016,15 @@ public abstract class AbstractFlashcardViewer extends NavigationDrawerActivity i
                                 && !mIsYScrolling) {
                             // up
                             executeCommand(mGestureSwipeUp);
+                            Intent intent = new Intent("finish_activity");
+                            sendBroadcast(intent);
                         }
                     }
                 } catch (Exception e) {
                     Timber.e(e, "onFling Exception");
                 }
             }
+
             return false;
         }
 

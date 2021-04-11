@@ -1029,9 +1029,6 @@ public class Reviewer extends AbstractFlashcardViewer {
             WidgetStatus.update(this);
         }
         UIUtils.saveCollectionInBackground();
-        
-        Intent intent = new Intent("finish_activity");
-        sendBroadcast(intent);
     }
 
 
