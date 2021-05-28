@@ -1,3 +1,19 @@
+/****************************************************************************************
+ * Copyright (c) 2020 Arthur Milchior <arthur@milchior.fr>                              *
+ *                                                                                      *
+ * This program is free software; you can redistribute it and/or modify it under        *
+ * the terms of the GNU General Public License as published by the Free Software        *
+ * Foundation; either version 3 of the License, or (at your option) any later           *
+ * version.                                                                             *
+ *                                                                                      *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY      *
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A      *
+ * PARTICULAR PURPOSE. See the GNU General Public License for more details.             *
+ *                                                                                      *
+ * You should have received a copy of the GNU General Public License along with         *
+ * this program.  If not, see <http://www.gnu.org/licenses/>.                           *
+ ****************************************************************************************/
+
 package com.ichi2.async;
 
 import android.os.AsyncTask;
@@ -53,7 +69,7 @@ public class SingleTaskManager extends TaskManager {
      * @return the newly created task
      */
     @Override
-    public <ProgressBackground, ResultBackground> CollectionTask<ProgressBackground, ProgressBackground, ResultBackground, ResultBackground> launchCollectionTaskConcrete(CollectionTask.Task<ProgressBackground, ResultBackground> task) {
+    public <ProgressBackground, ResultBackground> CollectionTask<ProgressBackground, ResultBackground> launchCollectionTaskConcrete(CollectionTask.Task<ProgressBackground, ResultBackground> task) {
         return launchCollectionTask(task, null);
     }
 
@@ -70,11 +86,11 @@ public class SingleTaskManager extends TaskManager {
      * @param listener to the status and result of the task, may be null
      * @return the newly created task
      */
-    public <ProgressListener, ProgressBackground extends ProgressListener, ResultListener, ResultBackground extends ResultListener> CollectionTask<ProgressListener, ProgressBackground, ResultListener, ResultBackground>
+    public <ProgressBackground, ResultBackground> CollectionTask<ProgressBackground, ResultBackground>
     launchCollectionTaskConcrete(@NonNull CollectionTask.Task<ProgressBackground, ResultBackground> task,
-                         @Nullable TaskListener<ProgressListener, ResultListener> listener) {
+                         @Nullable TaskListener<? super ProgressBackground, ? super ResultBackground> listener) {
         // Start new task
-        CollectionTask<ProgressListener, ProgressBackground, ResultListener, ResultBackground> newTask = new CollectionTask<>(task, listener, mLatestInstance);
+        CollectionTask<ProgressBackground, ResultBackground> newTask = new CollectionTask<>(task, listener, mLatestInstance);
         addTasks(newTask);
         newTask.execute();
         return newTask;

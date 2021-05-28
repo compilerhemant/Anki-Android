@@ -23,6 +23,7 @@ import android.text.TextUtils;
 import android.util.Pair;
 
 import com.ichi2.anki.AnkiDroidApp;
+import com.ichi2.anki.Preferences;
 import com.ichi2.anki.R;
 import com.ichi2.anki.stats.OverviewStatsBuilder;
 import com.ichi2.anki.stats.OverviewStatsBuilder.OverviewStats.AnswerButtonsOverview;
@@ -865,13 +866,7 @@ public class Stats {
         if (lim.length() > 0) {
             lim = " and " + lim;
         }
-        int rolloverHour;
-        if (mCol.schedVer() == 1) {
-            Calendar sd = mCol.crtGregorianCalendar();
-            rolloverHour = sd.get(Calendar.HOUR_OF_DAY);
-        } else {
-            rolloverHour = mCol.getConf().optInt("rollover", 4);
-        }
+        int rolloverHour = Preferences.getDayOffset(mCol);
         int pd = _periodDays();
         if (pd > 0) {
             lim += " and id > " + ((mCol.getSched().getDayCutoff() -  (SECONDS_PER_DAY * pd)) * 1000);
@@ -999,9 +994,9 @@ public class Stats {
         }
 
         long cutoff = mCol.getSched().getDayCutoff();
-        ArrayList<double[]> list = new ArrayList<>(7); // one by day of the week
-        String query = "SELECT strftime('%w',datetime( cast(id/ 1000  -" + sd.get(Calendar.HOUR_OF_DAY) * 3600 +
-                " as int), 'unixepoch')) as wd, " +
+        ArrayList<double[]> list = new ArrayList<>(Collections.nCopies(7, new double[]{0,0,0})); // one by day of the week
+        String query = "SELECT cast(strftime('%w',datetime( cast(id/ 1000  -" + sd.get(Calendar.HOUR_OF_DAY) * 3600 +
+                " as int), 'unixepoch'))as int) as wd, " +
                 "sum(case when ease = 1 then 0 else 1 end) / " +
                 "cast(count() as float) * 100, " +
                 "count() " +
@@ -1013,13 +1008,15 @@ public class Stats {
         try (Cursor cur = mCol.getDb()
                     .query(query)) {
             while (cur.moveToNext()) {
-                list.add(new double[] { cur.getDouble(0), cur.getDouble(1), cur.getDouble(2) });
+                int weekday = cur.getInt(0);
+                list.add(weekday, new double[] {weekday, cur.getDouble(1), cur.getDouble(2) });
             }
         }
 
         //TODO adjust for breakdown, for now only copied from intervals
         // small adjustment for a proper chartbuilding with achartengine
-        if (list.size() == 0 ) {
+
+        if (list.size() == 0 ) { // todo do I remove this because of Collections.nCopies()?
             list.add(0, new double[] { 0, 0, 0 });
         }
 
@@ -1264,7 +1261,7 @@ public class Stats {
     public static String deckLimit(long deckId, Collection col) {
         if (deckId == ALL_DECKS_ID) {
             // All decks
-            ArrayList<Deck> decks = col.getDecks().all();
+            List<Deck> decks = col.getDecks().all();
             ArrayList<Long> ids = new ArrayList<>(decks.size());
             for (Deck d : decks) {
                 ids.add(d.getLong("id"));

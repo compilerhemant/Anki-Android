@@ -47,21 +47,20 @@ import com.ichi2.libanki.template.ParsedNode;
 import com.ichi2.libanki.template.TemplateError;
 import com.ichi2.libanki.utils.Time;
 import com.ichi2.upgrade.Upgrade;
-import com.ichi2.utils.DatabaseChangeDecorator;
 import com.ichi2.utils.FunctionalInterfaces;
-import com.ichi2.utils.LanguageUtil;
 import com.ichi2.utils.VersionUtils;
 
 import com.ichi2.utils.JSONArray;
 import com.ichi2.utils.JSONException;
 import com.ichi2.utils.JSONObject;
 
+import net.ankiweb.rsdroid.RustCleanup;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -80,14 +79,12 @@ import java.util.regex.Pattern;
 import androidx.annotation.CheckResult;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 import androidx.annotation.VisibleForTesting;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.sqlite.db.SupportSQLiteStatement;
 import timber.log.Timber;
 
 import static com.ichi2.async.CancelListener.isCancelled;
-import static com.ichi2.libanki.Consts.DECK_DYN;
 
 // Anki maintains a cache of used tags so it can quickly present a list of tags
 // for autocomplete and in the browser. For efficiency, deletions are not
@@ -126,7 +123,7 @@ public class Collection implements CollectionGetter {
     // END: SQL table columns
 
     // API 21: Use a ConcurrentLinkedDeque
-    private LinkedBlockingDeque<Undoable> mUndo;
+    private LinkedBlockingDeque<UndoAction> mUndo;
 
     private final String mPath;
     private final DroidBackend mDroidBackend;
@@ -137,6 +134,12 @@ public class Collection implements CollectionGetter {
     private static final Pattern fClozePatternA = Pattern.compile("\\{\\{(.*?)cloze:");
     private static final Pattern fClozeTagStart = Pattern.compile("<%cloze:");
 
+    /**
+     * This is only used for collections which were created before
+     * the new collections default was v2
+     * In that case, 'schedVer' is not set, so this default is used.
+     * See: #8926
+     * */
     private static final int fDefaultSchedulerVersion = 1;
     private static final List<Integer> fSupportedSchedulerVersions = Arrays.asList(1, 2);
 
@@ -147,12 +150,12 @@ public class Collection implements CollectionGetter {
     public static final String DEFAULT_CONF = "{"
             +
             // review options
-            "'activeDecks': [1], " + "'curDeck': 1, " + "'newSpread': " + Consts.NEW_CARDS_DISTRIBUTE + ", "
-            + "'collapseTime': 1200, " + "'timeLim': 0, " + "'estTimes': True, " + "'dueCounts': True, "
+            "\"activeDecks\": [1], " + "\"curDeck\": 1, " + "\"newSpread\": " + Consts.NEW_CARDS_DISTRIBUTE + ", "
+            + "\"collapseTime\": 1200, " + "\"timeLim\": 0, " + "\"estTimes\": true, " + "\"dueCounts\": true, "
             +
             // other config
-            "'curModel': null, " + "'nextPos': 1, " + "'sortType': \"noteFld\", "
-            + "'sortBackwards': False, 'addToCur': True }"; // add new to currently selected deck?
+            "\"curModel\": null, " + "\"nextPos\": 1, " + "\"sortType\": \"noteFld\", "
+            + "\"sortBackwards\": false, \"addToCur\": true }"; // add new to currently selected deck?
 
     private static final int UNDO_SIZE_MAX = 20;
 
@@ -289,32 +292,10 @@ public class Collection implements CollectionGetter {
         if (sChunk != 0) {
             return sChunk;
         }
-        // the window size is saved in
-        // io.requery.android.database.CursorWindow.sCursorWindowSize.
-        // Values are copied here. Ideally, a getter would allow to access it.
+        // This is valid for the framework sqlite as far back as Android 5 / SDK21
+        // https://github.com/aosp-mirror/platform_frameworks_base/blob/ba35a77c7c4494c9eb74e87d8eaa9a7205c426d2/core/res/res/values/config.xml#L1141
         final int WINDOW_SIZE_KB = 2048;
         int sCursorWindowSize = WINDOW_SIZE_KB * 1024;
-
-        // We have the ability to look into our sqlite implementation on Android and use it's value
-        // as a ceiling. Try it, with a reasonable fallback in case of failure
-        SupportSQLiteDatabase db = mDb.getDatabase();
-        String db_name = (db instanceof DatabaseChangeDecorator) ? ((DatabaseChangeDecorator) db).getWrapped().getClass().getName() : null;
-
-        if ("io.requery.android.database.sqlite.SQLiteDatabase".equals(db_name)) {
-            try {
-                Field cursorWindowSize = io.requery.android.database.CursorWindow.class.getDeclaredField("sDefaultCursorWindowSize");
-                cursorWindowSize.setAccessible(true);
-                int possibleCursorWindowSize = cursorWindowSize.getInt(null);
-                Timber.d("Reflectively discovered database default cursor window size %d", possibleCursorWindowSize);
-                if (possibleCursorWindowSize > 0) {
-                    sCursorWindowSize = possibleCursorWindowSize;
-                } else {
-                    Timber.w("Obtained unusable cursor window size: %d. Using default %d", possibleCursorWindowSize, sCursorWindowSize);
-                }
-            } catch (Exception e) {
-                Timber.w(e, "Unable to get window size from requery cursor.");
-            }
-        }
 
         // reduce the actual size a little bit.
         // In case db is not an instance of DatabaseChangeDecorator, sChunk evaluated on default window size
@@ -602,7 +583,7 @@ public class Collection implements CollectionGetter {
      * Return a new note with the default model from the deck
      * @return The new note
      */
-    public Note newNote() {
+    public @NonNull Note newNote() {
         return newNote(true);
     }
 
@@ -612,7 +593,7 @@ public class Collection implements CollectionGetter {
      *                the configuration (curModel)
      * @return The new note
      */
-    public Note newNote(boolean forDeck) {
+    public @NonNull Note newNote(boolean forDeck) {
         return newNote(getModels().current(forDeck));
     }
 
@@ -621,7 +602,7 @@ public class Collection implements CollectionGetter {
      * @param m The model to use for the new note
      * @return The new note
      */
-    public Note newNote(Model m) {
+    public @NonNull Note newNote(Model m) {
         return new Note(this, m);
     }
 
@@ -630,7 +611,7 @@ public class Collection implements CollectionGetter {
      * @param note A note to add if it generates card
      * @return Number of card added.
      */
-    public int addNote(Note note) {
+    public int addNote(@NonNull Note note) {
         return addNote(note, Models.AllowEmpty.ONLY_CLOZE);
     }
 
@@ -640,7 +621,7 @@ public class Collection implements CollectionGetter {
      * @param allowEmpty Whether we accept to add it even if it should generate no card. Useful to import note even if buggy
      * @return Number of card added
      */
-    public int addNote(Note note, Models.AllowEmpty allowEmpty) {
+    public int addNote(@NonNull Note note, Models.AllowEmpty allowEmpty) {
         // check we have card models available, then save
         ArrayList<JSONObject> cms = findTemplates(note, allowEmpty);
         // Todo: upstream, we accept to add a not even if it generates no card. Should be ported to ankidroid
@@ -928,7 +909,7 @@ public class Collection implements CollectionGetter {
         // Use template did (deck override) if valid, otherwise did in argument, otherwise model did
         if (did == 0) {
             did = template.optLong("did", 0);
-            if (did > 0 && mDecks.getDecks().containsKey(did)) {
+            if (did > 0 && mDecks.get(did, false) != null) {
             } else if (parameterDid != 0) {
                 did = parameterDid;
             } else {
@@ -1102,6 +1083,7 @@ public class Collection implements CollectionGetter {
     }
 
 
+    @RustCleanup("#8951 - Remove FrontSide added to the front")
     public HashMap<String, String> _renderQA(long cid, Model model, long did, int ord, String tags, String[] flist, int flags, boolean browser, String qfmt, String afmt) {
         // data is [cid, nid, mid, did, ord, tags, flds, cardFlags]
         // unpack fields and create dict
@@ -1137,6 +1119,7 @@ public class Collection implements CollectionGetter {
             if ("q".equals(type)) {
                 format = fClozePatternQ.matcher(format).replaceAll(String.format(Locale.US, "{{$1cq-%d:", cardNum));
                 format = fClozeTagStart.matcher(format).replaceAll(String.format(Locale.US, "<%%cq:%d:", cardNum));
+                fields.put("FrontSide", "");
             } else {
                 format = fClozePatternA.matcher(format).replaceAll(String.format(Locale.US, "{{$1ca-%d:", cardNum));
                 format = fClozeTagStart.matcher(format).replaceAll(String.format(Locale.US, "<%%ca:%d:", cardNum));
@@ -1316,14 +1299,14 @@ public class Collection implements CollectionGetter {
 
     /** Undo menu item name, or "" if undo unavailable. */
     @VisibleForTesting
-    public @Nullable Undoable undoType() {
+    public @Nullable UndoAction undoType() {
         if (mUndo.size() > 0) {
             return mUndo.getLast();
         }
         return null;
     }
     public String undoName(Resources res) {
-        Undoable type = undoType();
+        UndoAction type = undoType();
         if (type != null) {
             return type.name(res);
         }
@@ -1336,12 +1319,12 @@ public class Collection implements CollectionGetter {
     }
 
     public @Nullable Card undo() {
-        Undoable lastUndo = mUndo.removeLast();
+        UndoAction lastUndo = mUndo.removeLast();
         Timber.d("undo() of type %s", lastUndo.getClass());
         return lastUndo.undo(this);
     }
 
-    public void markUndo(@NonNull Undoable undo) {
+    public void markUndo(@NonNull UndoAction undo) {
         Timber.d("markUndo() of type %s", undo.getClass());
         mUndo.add(undo);
         while (mUndo.size() > UNDO_SIZE_MAX) {
@@ -1349,8 +1332,18 @@ public class Collection implements CollectionGetter {
         }
     }
 
+
+    public void onCreate() {
+        mDroidBackend.useNewTimezoneCode(this);
+        getConf().put("schedVer", 2);
+        setMod();
+        // we need to reload the scheduler: this was previously loaded as V1
+        _loadScheduler();
+    }
+
+
     @VisibleForTesting
-    public static class UndoReview extends Undoable {
+    public static class UndoReview extends UndoAction {
         private final boolean mWasLeech;
         @NonNull private final Card mClonedCard;
         public UndoReview(boolean wasLeech, @NonNull Card clonedCard) {
@@ -1718,8 +1711,8 @@ public class Collection implements CollectionGetter {
         int fixCount = 0;
         for (long id : mDecks.allDynamicDeckIds()) {
             try {
-                if (mDecks.hasDeckOptions(id)) {
-                    mDecks.removeDeckOptions(id);
+                if (hasDeckOptions(id)) {
+                    removeDeckOptions(id);
                     fixCount++;
                 }
             } catch (NoSuchDeckException e) {
@@ -1731,6 +1724,24 @@ public class Collection implements CollectionGetter {
             problems.add(String.format(Locale.US, "%d dynamic deck(s) had deck options.", fixCount));
         }
         return problems;
+    }
+
+
+    private Deck getDeckOrFail(long deckId) throws NoSuchDeckException {
+        Deck deck = getDecks().get(deckId, false);
+        if (deck == null) {
+            throw new NoSuchDeckException(deckId);
+        }
+        return deck;
+    }
+
+    private boolean hasDeckOptions(long deckId) throws NoSuchDeckException {
+        return getDeckOrFail(deckId).has("conf");
+    }
+
+
+    private void removeDeckOptions(long deckId) throws NoSuchDeckException {
+        getDeckOrFail(deckId).remove("conf");
     }
 
 
