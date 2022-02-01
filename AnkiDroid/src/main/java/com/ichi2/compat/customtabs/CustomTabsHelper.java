@@ -1,3 +1,4 @@
+//noinspection MissingCopyrightHeader #8659
 // Copyright 2015 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +22,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import androidx.browser.customtabs.CustomTabsService;
+import timber.log.Timber;
+
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -116,7 +119,7 @@ public class CustomTabsHelper {
             List<ResolveInfo> handlers = pm.queryIntentActivities(
                     intent,
                     PackageManager.GET_RESOLVED_FILTER);
-            if (handlers == null || handlers.size() == 0) {
+            if (handlers == null || handlers.isEmpty()) {
                 return false;
             }
             for (ResolveInfo resolveInfo : handlers) {
@@ -127,7 +130,7 @@ public class CustomTabsHelper {
                 return true;
             }
         } catch (RuntimeException e) {
-            Log.e(TAG, "Runtime exception while getting specialized handlers");
+            Timber.e("Runtime exception while getting specialized handlers");
         }
         return false;
     }

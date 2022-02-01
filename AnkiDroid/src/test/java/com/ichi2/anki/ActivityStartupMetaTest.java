@@ -40,6 +40,8 @@ public class ActivityStartupMetaTest extends RobolectricTest {
 
     @Test
     public void ensureAllActivitiesAreTested() throws PackageManager.NameNotFoundException {
+        // if this fails, you may need to add the missing activity to ActivityList.allActivitiesAndIntents()
+
         // we can't access this in a static context
         PackageManager pm = getTargetContext().getPackageManager();
 
@@ -56,6 +58,7 @@ public class ActivityStartupMetaTest extends RobolectricTest {
                 .filter(x -> !x.startsWith("com.yalantis"))
                 .filter(x -> !x.startsWith("androidx"))
                 .filter(x -> !x.startsWith("org.acra"))
+                .filter(x -> !x.startsWith("leakcanary.internal"))
                 .toArray();
         assertThat(testedActivityClassNames, containsInAnyOrder(manifestActivityNames));
     }

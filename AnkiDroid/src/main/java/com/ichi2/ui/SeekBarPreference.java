@@ -1,3 +1,4 @@
+//noinspection MissingCopyrightHeader #8659
 /* The following code was written by Matthew Wiggins
  * and is released under the APACHE 2.0 license
  *
@@ -21,7 +22,7 @@ import com.ichi2.anki.AnkiDroidApp;
 
 import androidx.annotation.StringRes;
 
-@SuppressWarnings("deprecation") // TODO Tracked in https://github.com/ankidroid/Anki-Android/issues/5019
+@SuppressWarnings("deprecation") // TODO Tracked in https://github.com/ankidroid/Anki-Android/issues/5019 see: SeekBarPreferenceCompat
 public class SeekBarPreference extends android.preference.DialogPreference implements SeekBar.OnSeekBarChangeListener {
     private static final String androidns = "http://schemas.android.com/apk/res/android";
 
@@ -124,9 +125,16 @@ public class SeekBarPreference extends android.preference.DialogPreference imple
             mValue = (value * mInterval) + mMin;
             String t = String.valueOf(mValue);
             mValueText.setText(mSuffix == null ? t : t + mSuffix);
+            onValueUpdated();
         }
     }
 
+    private void onValueUpdated() {
+        if (shouldPersist()) {
+            persistInt(mValue);
+        }
+        callChangeListener(mValue);
+    }
 
     public int getValue() {
         if (mValue == 0) {
@@ -146,10 +154,6 @@ public class SeekBarPreference extends android.preference.DialogPreference imple
 
 
     public void onStopTrackingTouch(SeekBar seek) {
-        if (shouldPersist()) {
-            persistInt(mValue);
-        }
-        callChangeListener(mValue);
         this.getDialog().dismiss();
     }
 

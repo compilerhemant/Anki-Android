@@ -60,6 +60,7 @@
     <string name="alert_logging_message">Přihlašování&#8230;</string>
     <string name="invalid_username_password">Neplatná e-mailová adresa nebo heslo</string>
     <string name="reset_password">Obnovit heslo</string>
+    <string name="lost_mail_instructions">Zapomněli jste e-mail?</string>
     <!-- AndroidManifest.xml -->
     <string name="preferences_title">Nastavení</string>
     <string name="deckpreferences_title">Možnosti pro XXX</string>
@@ -68,7 +69,6 @@
     <string name="sync_uploading_message">Nahrávání...</string>
     <string name="sync_downloading_message">Stahování...</string>
     <string name="sync_title">Synchronizace</string>
-    <string name="sync_downloading_media">Stahování multimédií %1$d/%2$d...</string>
     <string name="sync_log_uploading_message">Úplná synchronizace z místního úložiště</string>
     <string name="sync_log_clocks_unsynchronized">Čas na vašem zařízení je rozdílný o %1$d sekund %2$s. Ujistěte se, že datum, čas a časové pásmo jsou na telefonu nastaveny správně, pak znovu synchronizujte.</string>
     <string name="sync_log_clocks_unsynchronized_tz">, časové pásmo je možná špatné</string>

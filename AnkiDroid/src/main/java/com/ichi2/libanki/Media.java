@@ -30,6 +30,7 @@ import com.ichi2.libanki.template.TemplateFilters;
 import com.ichi2.utils.Assert;
 
 import com.ichi2.utils.ExceptionUtil;
+import com.ichi2.utils.HashUtil;
 import com.ichi2.utils.JSONArray;
 import com.ichi2.utils.JSONObject;
 
@@ -385,7 +386,7 @@ public class Media {
     }
 
 
-    public String escapeImages(String string) {
+    public static String escapeImages(String string) {
         return escapeImages(string, false);
     }
 
@@ -395,7 +396,7 @@ public class Media {
      * @param string The string to search for image references and escape the filenames.
      * @return The string with the filenames of any local images percent-escaped as UTF-8.
      */
-    public String escapeImages(String string, boolean unescape) {
+    public static String escapeImages(String string, boolean unescape) {
         for (Pattern p : Arrays.asList(fImgRegExpQ, fImgRegExpU)) {
             Matcher m = p.matcher(string);
             // NOTE: python uses the named group 'fname'. Java doesn't have named groups, so we have to determine
@@ -429,12 +430,12 @@ public class Media {
      *
      * @return A list containing three lists of files (missingFiles, unusedFiles, invalidFiles)
      */
-    public List<List<String>> check() {
+    public @NonNull List<List<String>> check() {
         return check(null);
     }
 
 
-    private List<List<String>> check(File[] local) {
+    private @NonNull List<List<String>> check(File[] local) {
         File mdir = new File(dir());
         // gather all media references in NFC form
         Set<String> allRefs = new HashSet<>();
@@ -698,7 +699,7 @@ public class Media {
 
 
     private Pair<List<String>, List<String>> _changes() {
-        Map<String, Object[]> cache = new HashMap<>(mDb.queryScalar("SELECT count() FROM media WHERE csum IS NOT NULL"));
+        Map<String, Object[]> cache = HashUtil.HashMapInit(mDb.queryScalar("SELECT count() FROM media WHERE csum IS NOT NULL"));
         try (Cursor cur = mDb.query("select fname, csum, mtime from media where csum is not null")) {
             while (cur.moveToNext()) {
                 String name = cur.getString(0);
@@ -862,7 +863,7 @@ public class Media {
         List<String> fnames = new ArrayList<>();
         try (ZipOutputStream z = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
              Cursor cur = mDb.query(
-                "select fname, csum from media where dirty=1 limit " + Consts.SYNC_ZIP_COUNT)
+                "select fname, csum from media where dirty=1 limit " + Consts.SYNC_MAX_FILES)
         ) {
             z.setMethod(ZipOutputStream.DEFLATED);
 
@@ -905,7 +906,7 @@ public class Media {
                     mCol.log("-media zip " + fname);
                     meta.put(new JSONArray().put(normname).put(""));
                 }
-                if (sz >= Consts.SYNC_ZIP_SIZE) {
+                if (sz >= Consts.SYNC_MAX_BYTES) {
                     break;
                 }
             }
@@ -957,7 +958,7 @@ public class Media {
                 media.add(new Object[] {name, csum, _mtime(destPath), 0});
                 cnt += 1;
             }
-            if (media.size() > 0) {
+            if (!media.isEmpty()) {
                 mDb.executeMany("insert or replace into media values (?,?,?,?)", media);
             }
             return cnt;

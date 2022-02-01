@@ -60,6 +60,7 @@
     <string name="alert_logging_message">Jungiamasi&#8230;</string>
     <string name="invalid_username_password">Neteisingas el. pašto adresas arba slaptažodis</string>
     <string name="reset_password">Atkurti slaptažodį</string>
+    <string name="lost_mail_instructions">Forgot Email?</string>
     <!-- AndroidManifest.xml -->
     <string name="preferences_title">Nuostatos</string>
     <string name="deckpreferences_title">XXX parinktys</string>
@@ -68,7 +69,6 @@
     <string name="sync_uploading_message">Išsiunčiama&#8230;</string>
     <string name="sync_downloading_message">Siunčiama&#8230;</string>
     <string name="sync_title">Sinchronizavimas</string>
-    <string name="sync_downloading_media">Laikmenos parsiunčiamos %1$d/%2$d&#8230;</string>
     <string name="sync_log_uploading_message">Išsamus sinchronizavimas iš įrenginio</string>
     <string name="sync_log_clocks_unsynchronized">Jūsų laikrodis atsilieka %1$d sek.%2$s. Prašome įsitikinti, kad telefone laikas ir laiko juosta yra nustatyti teisingai ir bandyti sinchronizuoti iš naujo.</string>
     <string name="sync_log_clocks_unsynchronized_tz">, gali būti, kad blogai nustatyta laiko juosta</string>

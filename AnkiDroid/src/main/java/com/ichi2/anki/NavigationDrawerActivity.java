@@ -26,10 +26,14 @@ import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+
+import com.drakeet.drawer.FullDraggableContainer;
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.TaskStackBuilder;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
@@ -38,12 +42,14 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.ichi2.anki.dialogs.HelpDialog;
 import com.ichi2.themes.Themes;
+import com.ichi2.utils.HandlerUtils;
 
 import java.util.Arrays;
 
@@ -73,11 +79,43 @@ public abstract class NavigationDrawerActivity extends AnkiActivity implements N
     public static final int REQUEST_BROWSE_CARDS = 101;
     public static final int REQUEST_STATISTICS = 102;
     private static final String NIGHT_MODE_PREFERENCE = "invertedColors";
+    public static final String FULL_SCREEN_NAVIGATION_DRAWER = "gestureFullScreenNavigationDrawer";
 
     /**
      * runnable that will be executed after the drawer has been closed.
      */
     private Runnable mPendingRunnable;
+
+    @Override
+    public void setContentView(@LayoutRes int layoutResID) {
+        SharedPreferences preferences = AnkiDroidApp.getSharedPrefs(getBaseContext());
+
+        // Using ClosableDrawerLayout as a parent view.
+        ClosableDrawerLayout closableDrawerLayout = (ClosableDrawerLayout) LayoutInflater.from(this).inflate(getNavigationDrawerLayout(), null, false);
+        // Get CoordinatorLayout using resource ID
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) LayoutInflater.from(this).inflate(layoutResID, closableDrawerLayout, false);
+        if (preferences.getBoolean(FULL_SCREEN_NAVIGATION_DRAWER, false)) {
+            // If full screen navigation drawer is needed, then add FullDraggableContainer as a child view of closableDrawerLayout.
+            // Then add coordinatorLayout as a child view of fullDraggableContainer.
+            FullDraggableContainer fullDraggableContainer = new FullDraggableContainer(this);
+            fullDraggableContainer.addView(coordinatorLayout);
+            closableDrawerLayout.addView(fullDraggableContainer, 0);
+        } else {
+            // If full screen navigation drawer is not needed, then directly add coordinatorLayout as the child view.
+            closableDrawerLayout.addView(coordinatorLayout, 0);
+        }
+
+        setContentView(closableDrawerLayout);
+    }
+
+    private @LayoutRes int getNavigationDrawerLayout() {
+        return fitsSystemWindows() ? R.layout.navigation_drawer_layout : R.layout.navigation_drawer_layout_fullscreen;
+    }
+
+    /** Whether android:fitsSystemWindows="true" should be applied to the navigation drawer */
+    protected boolean fitsSystemWindows() {
+        return true;
+    }
 
     // Navigation drawer initialisation
     protected void initNavigationDrawer(View mainView) {
@@ -117,13 +155,12 @@ public abstract class NavigationDrawerActivity extends AnkiActivity implements N
 
                 // If animations are disabled, this is executed before onNavigationItemSelected is called
                 // PERF: May be able to reduce this delay
-                new Handler().postDelayed(() -> {
+                HandlerUtils.postDelayedOnNewHandler(() -> {
                     if (mPendingRunnable != null) {
-                        new Handler().post(mPendingRunnable);
+                        HandlerUtils.postOnNewHandler(mPendingRunnable); // TODO: See if we can use the same handler here
                         mPendingRunnable = null;
                     }
                 }, 100);
-
             }
 
 
@@ -350,7 +387,8 @@ public abstract class NavigationDrawerActivity extends AnkiActivity implements N
             if (itemId == R.id.nav_decks) {
                 Timber.i("Navigating to decks");
                 Intent deckPicker = new Intent(NavigationDrawerActivity.this, DeckPicker.class);
-                deckPicker.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);    // opening DeckPicker should clear back history
+                // opening DeckPicker should use the instance on the back stack & clear back history
+                deckPicker.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivityWithAnimation(deckPicker, END);
             } else if (itemId == R.id.nav_browser) {
                 Timber.i("Navigating to card browser");

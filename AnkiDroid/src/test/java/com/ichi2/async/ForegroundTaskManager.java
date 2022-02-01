@@ -1,7 +1,22 @@
+/*
+ *  Copyright (c) 2021 Arthur Milchior <arthur@milchior.fr>
+ *
+ *  This program is free software; you can redistribute it and/or modify it under
+ *  the terms of the GNU General Public License as published by the Free Software
+ *  Foundation; either version 3 of the License, or (at your option) any later
+ *  version.
+ *
+ *  This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ *  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ *  PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with
+ *  this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.ichi2.async;
 
 import com.ichi2.libanki.CollectionGetter;
-import com.ichi2.libanki.Collection;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,7 +37,7 @@ public class ForegroundTaskManager extends TaskManager {
 
 
     @Override
-    public <ProgressBackground, ResultBackground> CollectionTask<ProgressBackground, ResultBackground> launchCollectionTaskConcrete(CollectionTask.Task<ProgressBackground, ResultBackground> task) {
+    public <Progress, Result> Cancellable launchCollectionTaskConcrete(TaskDelegate<Progress, Result> task) {
         return launchCollectionTaskConcrete(task, null);
     }
 
@@ -33,19 +48,19 @@ public class ForegroundTaskManager extends TaskManager {
 
 
     @Override
-    public <ProgressBackground, ResultBackground> CollectionTask<ProgressBackground, ResultBackground> launchCollectionTaskConcrete(
-            @NonNull CollectionTask.Task<ProgressBackground, ResultBackground> task,
-            @Nullable TaskListener<? super ProgressBackground, ? super ResultBackground> listener) {
+    public <Progress, Result> Cancellable launchCollectionTaskConcrete(
+            @NonNull TaskDelegate<Progress, Result> task,
+            @Nullable TaskListener<? super Progress, ? super Result> listener) {
         return executeTaskWithListener(task, listener, mColGetter);
     }
 
-    public static <ProgressBackground, ResultBackground> CollectionTask<ProgressBackground, ResultBackground> executeTaskWithListener(
-            @NonNull CollectionTask.Task<ProgressBackground, ResultBackground> task,
-            @Nullable TaskListener<? super ProgressBackground, ? super ResultBackground> listener, CollectionGetter colGetter) {
+    public static <Progress, Result> Cancellable executeTaskWithListener(
+            @NonNull TaskDelegate<Progress, Result> task,
+            @Nullable TaskListener<? super Progress, ? super Result> listener, CollectionGetter colGetter) {
         if (listener != null) {
             listener.onPreExecute();
         }
-        final ResultBackground res;
+        final Result res;
         try {
             res = task.task(colGetter.getCol(), new MockTaskManager<>(listener));
         } catch (Exception e) {
@@ -85,12 +100,12 @@ public class ForegroundTaskManager extends TaskManager {
         return true;
     }
 
-    public static class MockTaskManager<ProgressListener, ProgressBackground extends ProgressListener> implements ProgressSenderAndCancelListener<ProgressBackground> {
+    public static class MockTaskManager<ProgressListener, Progress extends ProgressListener> implements ProgressSenderAndCancelListener<Progress> {
 
-        private final @Nullable TaskListener<? super ProgressBackground, ?> mTaskListener;
+        private final @Nullable TaskListener<? super Progress, ?> mTaskListener;
 
 
-        public MockTaskManager(@Nullable TaskListener<? super ProgressBackground, ?> listener) {
+        public MockTaskManager(@Nullable TaskListener<? super Progress, ?> listener) {
             mTaskListener = listener;
         }
 
@@ -102,15 +117,15 @@ public class ForegroundTaskManager extends TaskManager {
 
 
         @Override
-        public void doProgress(@Nullable ProgressBackground value) {
+        public void doProgress(@Nullable Progress value) {
             mTaskListener.onProgressUpdate(value);
         }
     }
 
-    public static class EmptyTask<ProgressBackground, ResultBackground> extends
-            CollectionTask<ProgressBackground, ResultBackground> {
+    public static class EmptyTask<Progress, Result> extends
+            CollectionTask<Progress, Result> {
 
-        protected EmptyTask(Task<ProgressBackground, ResultBackground> task, TaskListener<? super ProgressBackground, ? super ResultBackground> listener) {
+        protected EmptyTask(TaskDelegate<Progress, Result> task, TaskListener<? super Progress, ? super Result> listener) {
             super(task, listener, null);
         }
     }

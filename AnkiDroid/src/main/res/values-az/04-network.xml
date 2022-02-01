@@ -60,6 +60,7 @@
     <string name="alert_logging_message">Giriş edilir...</string>
     <string name="invalid_username_password">Yanlış e-poçt ünvanı və ya şifrə</string>
     <string name="reset_password">Şifrəni dəyiş</string>
+    <string name="lost_mail_instructions">Forgot Email?</string>
     <!-- AndroidManifest.xml -->
     <string name="preferences_title">Seçimlərimiz</string>
     <string name="deckpreferences_title">XXX seçimləri</string>
@@ -68,7 +69,6 @@
     <string name="sync_uploading_message">Yüklənilir...</string>
     <string name="sync_downloading_message">Endirilir....</string>
     <string name="sync_title">Sinxronizasiya</string>
-    <string name="sync_downloading_media">Media yüklənir %1$d/%2$d&#8230;</string>
     <string name="sync_log_uploading_message">Yerli tam sync</string>
     <string name="sync_log_clocks_unsynchronized">Your clock’s off by %1$d seconds%2$s. Make sure that the date, time, and timezone on your phone are set correctly, then sync again.</string>
     <string name="sync_log_clocks_unsynchronized_tz">, saat diliminin ehtimal yanlışdır.</string>

@@ -39,7 +39,7 @@
 
 -->
 <resources>
-    <string name="youre_offline">Vous êtes hors ligne</string>
+    <string name="youre_offline">Vous n\'êtes pas connecté à Internet</string>
     <string name="sync_even_if_offline">Essayer quand même</string>
     <string name="sync_error">Erreur de synchronisation</string>
     <string name="vague_error">Erreur</string>
@@ -60,6 +60,7 @@
     <string name="alert_logging_message">Connexion, patientez s’il vous plaît &#8230;</string>
     <string name="invalid_username_password">Votre adresse électronique ou mot de passe est invalide.</string>
     <string name="reset_password">Réinitialiser le mot de passe</string>
+    <string name="lost_mail_instructions">Adresse oubliée ?</string>
     <!-- AndroidManifest.xml -->
     <string name="preferences_title">Préférences</string>
     <string name="deckpreferences_title">Options pour XXX</string>
@@ -68,7 +69,6 @@
     <string name="sync_uploading_message">Envoi en cours&#8230;</string>
     <string name="sync_downloading_message">Téléchargement...</string>
     <string name="sync_title">Synchronisation</string>
-    <string name="sync_downloading_media">Téléchargement du média %1$d/%2$d...</string>
     <string name="sync_log_uploading_message">Synchronisation complète depuis la version locale</string>
     <string name="sync_log_clocks_unsynchronized">L’heure sur votre appareil est incorrecte de %1$d secondes %2$s; La synchronisation requiert que votre horloge et le fuseau horaire soient définis correctement afin d’éviter les erreurs. Veuillez vous assurer que les date, heure et fuseau horaire sur votre appareil sont correctement réglés, puis resynchronisez.</string>
     <string name="sync_log_clocks_unsynchronized_tz">, le fuseau horaire de l\'appareil est peut-être erroné</string>

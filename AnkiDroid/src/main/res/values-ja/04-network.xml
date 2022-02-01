@@ -60,6 +60,7 @@
     <string name="alert_logging_message">ログインしています&#8230;</string>
     <string name="invalid_username_password">メールアドレスまたはパスワードが無効です</string>
     <string name="reset_password">パスワードを再設定</string>
+    <string name="lost_mail_instructions">Forgot Email?</string>
     <!-- AndroidManifest.xml -->
     <string name="preferences_title">設定</string>
     <string name="deckpreferences_title">XXX のオプション</string>
@@ -68,7 +69,6 @@
     <string name="sync_uploading_message">アップロード中...</string>
     <string name="sync_downloading_message">ダウンロード中...</string>
     <string name="sync_title">同期</string>
-    <string name="sync_downloading_media">メディア %1$d/%2$d をダウンロード中...</string>
     <string name="sync_log_uploading_message">この端末側のコレクションによる完全同期が完了しました</string>
     <string name="sync_log_clocks_unsynchronized">端末の時計が正しくありません（%1$d 秒 %2$s）；データ同期時のエラー発生を防止するため、時計を正しくセットしてください。日付、時刻、およびタイムゾーンが正しく設定した後、再び同期を開始してください。</string>
     <string name="sync_log_clocks_unsynchronized_tz">, 端末のタイムゾーンが間違っています</string>

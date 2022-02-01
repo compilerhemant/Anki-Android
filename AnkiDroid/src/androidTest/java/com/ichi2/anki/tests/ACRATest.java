@@ -66,10 +66,25 @@ public class ACRATest extends InstrumentedTest {
      * @exception NoSuchFieldException if the method isn't found, possibly IllegalAccess or InvocationAccess as well
      */
     private void setAcraConfig(String mode, SharedPreferences prefs) throws Exception {
-        Method method = mApp.getClass().getDeclaredMethod("set" + mode + "ACRAConfig", SharedPreferences.class);
+        Method method = findSetAcraConfigMethod(mode);
         method.setAccessible(true);
         method.invoke(mApp, prefs);
     }
+
+    /** @return the method: "set[Debug/Production]ACRAConfig" on the application instance */
+    private Method findSetAcraConfigMethod(String mode) {
+        Class<?> clazz = mApp.getClass();
+        String methodName = "set" + mode + "ACRAConfig";
+        while (clazz != null) {
+            try {
+                return clazz.getDeclaredMethod(methodName, SharedPreferences.class);
+            } catch (NoSuchMethodException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw new IllegalStateException(methodName + " not found");
+    }
+
 
     @Test
     public void testDebugConfiguration() throws Exception {
@@ -113,7 +128,7 @@ public class ACRATest extends InstrumentedTest {
         setAcraConfig("Production");
         verifyACRANotDisabled();
 
-        assertToastMessage(R.string.feedback_manual_toast_text);
+        assertToastMessage(R.string.feedback_for_manual_toast_text);
         assertToastIsEnabled();
         assertDialogEnabledStatus("Dialog should be enabled", true);
     }
@@ -196,7 +211,7 @@ public class ACRATest extends InstrumentedTest {
         setAcraReportingMode(FEEDBACK_REPORT_ASK);
 
         assertDialogEnabledStatus("dialog should be re-enabled after changed to ASK", true);
-        assertToastMessage(R.string.feedback_manual_toast_text);
+        assertToastMessage(R.string.feedback_for_manual_toast_text);
     }
 
     @Test
@@ -208,7 +223,7 @@ public class ACRATest extends InstrumentedTest {
         setAcraConfig("Production");
         verifyACRANotDisabled();
 
-        assertToastMessage(R.string.feedback_manual_toast_text);
+        assertToastMessage(R.string.feedback_for_manual_toast_text);
 
         setAcraReportingMode(FEEDBACK_REPORT_ALWAYS);
 

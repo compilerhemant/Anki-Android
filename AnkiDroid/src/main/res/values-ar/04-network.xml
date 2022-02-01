@@ -60,6 +60,7 @@
     <string name="alert_logging_message">تسجيل الدخول، الرجاء الانتظار...</string>
     <string name="invalid_username_password">البريد الإلكتروني أو كلمة السر غير صحيحة</string>
     <string name="reset_password">إعادة تعيين كلمة السر</string>
+    <string name="lost_mail_instructions">هل نسيت بريدك الإلكتروني؟</string>
     <!-- AndroidManifest.xml -->
     <string name="preferences_title">تفضيلات</string>
     <string name="deckpreferences_title">خيارات XXX</string>
@@ -68,7 +69,6 @@
     <string name="sync_uploading_message">رفع...</string>
     <string name="sync_downloading_message">تنزيل...</string>
     <string name="sync_title">المزامنة</string>
-    <string name="sync_downloading_media">تحميل الوسائط %1$d/%2$d...</string>
     <string name="sync_log_uploading_message">مزامنة كاملة من القرص المحلي</string>
     <string name="sync_log_clocks_unsynchronized">ساعتك مخطئة بمقدار %1$d ثانية%2$s. تأكد من ضبط التاريخ، والوقت، والمنطقة الزمنية في هاتفك بشكل صحيح، ثم زامن مجددًا.</string>
     <string name="sync_log_clocks_unsynchronized_tz">، من المحتمل أن المنطقة الزمنية للجهاز غير صحيحة</string>

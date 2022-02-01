@@ -29,6 +29,10 @@
     <issue id="UnusedResources" severity="fatal">
         <!-- Ignore as they'll be used for #7526 -->
         <ignore regexp="content_picture\.png|device_access_mic\.png" />
+        <!-- Remove once #6772 is complete -->
+        <ignore regexp="edit_text_color_enabled_selector\.xml" />
+        <ignore regexp="multiline_spinner_item\.xml" />
+        <!-- end: Remove once #6772 is complete -->
         <ignore path="res/values/12-dont-translate.xml" />
         <!-- Ignore all translations except values - CrowdIn will handle deletions -->
         <!-- We only need to handle -af and all others are implicitly ignored -->
@@ -46,12 +50,25 @@
     <issue id="RtlCompat" severity="fatal" />
     <issue id="RtlEnabled" severity="fatal" />
     <issue id="RtlHardcoded" severity="fatal" />
+
+    <!-- this is new with AGP7.1+, does not appear to create value -->
+    <issue id="IntentFilterUniqueDataAttributes" severity="ignore" />
+
+    <!-- We cannot move to targetSdk 30+ yet: https://github.com/ankidroid/Anki-Android/issues/7348 -->
+    <issue id="ExpiredTargetSdkVersion" severity="ignore" />
+
+    <!-- cannot enable play store language downloads until ABB used vs APK: https://github.com/ankidroid/Anki-Android/issues/9259 -->
+    <issue id="AppBundleLocaleChanges" severity="ignore" />
+
     <!-- RtlSymmetry is disabled because we already have RtlHardcoded rule enabled -->
     <issue id="RtlSymmetry" severity="ignore" />
 
-    <!-- This come from Timber and we need to also ignore them  -->
-    <issue id="BinaryOperationInTimber" severity="ignore" />
-    <issue id="LogNotTimber" severity="ignore" />
+    <!-- Allows Timber issues defined for AnkiDroid without an api dependency on Timber -->
+    <issue id="UnknownIssueId" severity="ignore" />
+
+    <!-- Temporarily allows obsolete lint until https://issuetracker.google.com/issues/206855622 is resolved upstream -->
+    <issue id="ObsoleteLintCustomCheck" severity="ignore" />
+
     <issue id="UseCompatTextViewDrawableXml" severity="ignore" />
     <issue id="AcceptsUserCertificates" severity="ignore" />
     <issue id="RedundantNamespace" severity="ignore" />
@@ -350,4 +367,9 @@
     <issue id="SuspiciousImport" severity="ignore" />
     <issue id="WrongFolder" severity="ignore" />
     <issue id="WrongThreadInterprocedural" severity="ignore" />
+
+
+    <issue id="CustomX509TrustManager" severity="ignore" />
+    <!-- PERF: Could improve by not using notifyDataSetChanged() -->
+    <issue id="NotifyDataSetChanged" severity="ignore" />
 </lint>

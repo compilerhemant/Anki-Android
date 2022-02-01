@@ -60,6 +60,7 @@
     <string name="alert_logging_message">Iniciando sesión&#8230;</string>
     <string name="invalid_username_password">Correo electrónico o contraseña no válido</string>
     <string name="reset_password">Restablecer contraseña</string>
+    <string name="lost_mail_instructions">¿Olvidaste el correo electrónico?</string>
     <!-- AndroidManifest.xml -->
     <string name="preferences_title">Preferencias</string>
     <string name="deckpreferences_title">Opciones para XXX</string>
@@ -68,7 +69,6 @@
     <string name="sync_uploading_message">Subiendo&#8230;</string>
     <string name="sync_downloading_message">Descargando&#8230;</string>
     <string name="sync_title">Sincronización</string>
-    <string name="sync_downloading_media">Descargando archivos multimedia %1$d/%2$d&#8230;</string>
     <string name="sync_log_uploading_message">Sincronización completa desde el cliente</string>
     <string name="sync_log_clocks_unsynchronized">El reloj en tu dispositivo está desfasado en %1$d segundos%2$s; La sincronización requiere que tanto tu reloj como tu zona horaria estén ajustados correctamente para evitar errores. Por favor, asegúrate de que tus ajustes de fecha y hora estén configurados correctamente, y vuelve a sincronizar.</string>
     <string name="sync_log_clocks_unsynchronized_tz">, la zona horaria del dispositivo es probablemente errónea</string>
