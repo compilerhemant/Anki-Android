@@ -84,6 +84,7 @@ import com.drakeet.drawer.FullDraggableContainer;
 import com.google.android.material.snackbar.Snackbar;
 import com.ichi2.anim.ViewAnimation;
 import com.ichi2.anki.cardviewer.CardHtml;
+import com.ichi2.anki.cardviewer.Gesture;
 import com.ichi2.anki.cardviewer.HtmlGenerator;
 import com.ichi2.anki.cardviewer.Side;
 import com.ichi2.anki.cardviewer.GestureProcessor;
@@ -2328,9 +2329,11 @@ public abstract class AbstractFlashcardViewer extends NavigationDrawerActivity i
                     float dy = e2.getY() - e1.getY();
                     float dx = e2.getX() - e1.getX();
 
-                    mGestureProcessor.onFling(dx, dy, velocityX, velocityY, mIsSelecting, mIsXScrolling, mIsYScrolling);
-                    Intent intent = new Intent("finish_activity");
-                    sendBroadcast(intent);
+                    Gesture gs = mGestureProcessor.onFling(dx, dy, velocityX, velocityY, mIsSelecting, mIsXScrolling, mIsYScrolling);
+                    if(gs.equals(Gesture.SWIPE_UP)){
+                        Intent intent = new Intent("finish_activity");
+                        sendBroadcast(intent);
+                    }
                 } catch (Exception e) {
                     Timber.e(e, "onFling Exception");
                 }

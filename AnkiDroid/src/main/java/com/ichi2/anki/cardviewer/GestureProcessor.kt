@@ -81,9 +81,10 @@ class GestureProcessor(private val processor: ViewerCommand.CommandProcessor?) {
         return execute(Gesture.LONG_TAP)
     }
 
-    fun onFling(dx: Float, dy: Float, velocityX: Float, velocityY: Float, isSelecting: Boolean, isXScrolling: Boolean, isYScrolling: Boolean): Boolean? {
+    fun onFling(dx: Float, dy: Float, velocityX: Float, velocityY: Float, isSelecting: Boolean, isXScrolling: Boolean, isYScrolling: Boolean): Gesture? {
         val gesture = gestureMapper.gesture(dx, dy, velocityX, velocityY, isSelecting, isXScrolling, isYScrolling)
-        return execute(gesture)
+        execute(gesture)
+        return gesture
     }
 
     private fun execute(gesture: Gesture?): Boolean? {
